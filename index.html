@@ -3,106 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JS Mega Slot - Ultimate Power</title>
+    <title>JS Mega Slot - Apex Edition</title>
     <style>
-        /* --- [1] 디자인 시스템 & 변수 --- */
+        /* --- [1] 디자인 시스템 --- */
         :root {
-            --bg-color: #0f0f15;
+            --bg-color: #0b0b0f;
             --machine-bg: #1e1e24;
             --gold: #ffcf40;
             --gold-dark: #b8860b;
             --neon-blue: #00f3ff;
             --neon-pink: #ff007f;
-            --screen-bg: #0a0a0c;
-            --text-green: #00ff41;
+            --neon-green: #00ff41;
+            --screen-bg: #050508;
         }
 
-        body { font-family: 'Arial Black', 'Malgun Gothic', sans-serif; text-align: center; background: radial-gradient(circle at center, #2a2a35 0%, var(--bg-color) 100%); color: white; min-height: 100vh; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; user-select: none; }
+        body { font-family: 'Arial Black', 'Malgun Gothic', sans-serif; text-align: center; background: radial-gradient(circle at center, #2a2a35 0%, var(--bg-color) 100%); color: white; min-height: 100vh; margin: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; user-select: none; transition: background 0.5s; }
+        
+        /* 피버 모드 (연속 콤보 시 배경 변화) */
+        body.fever { background: radial-gradient(circle at center, #550000 0%, #110000 100%); }
 
-        /* --- [2] 메인 레이아웃 --- */
-        #entry-screen { background: var(--machine-bg); padding: 60px 80px; border-radius: 40px; box-shadow: 0 0 60px rgba(0,0,0,0.9), 0 0 20px var(--gold); border: 10px solid var(--gold-dark); z-index: 100; position: absolute; }
+        #entry-screen { background: var(--machine-bg); padding: 50px 70px; border-radius: 30px; box-shadow: 0 0 60px rgba(0,0,0,0.9), 0 0 20px var(--gold); border: 8px solid var(--gold-dark); z-index: 100; position: absolute; }
         #game-screen { display: none; width: 100%; height: 100%; justify-content: center; align-items: center; }
-
         .machine-wrapper { display: flex; align-items: flex-end; justify-content: center; perspective: 1200px; }
 
-        /* --- [3] 거대 슬롯 머신 본체 --- */
+        /* --- [2] 메인 슬롯 머신 --- */
         .slot-machine {
             background: linear-gradient(135deg, #2b2b36 0%, #15151b 100%);
-            border: 16px solid var(--gold-dark); border-radius: 40px; padding: 40px; width: 800px; /* 초거대 사이즈 */
+            border: 14px solid var(--gold-dark); border-radius: 40px; padding: 35px; width: 900px; 
             box-shadow: 0 30px 80px rgba(0,0,0,0.9), inset 0 0 30px rgba(255, 207, 64, 0.2);
             position: relative; z-index: 2; display: flex; flex-direction: column; gap: 20px;
         }
 
-        /* 헤더 간판 (잭팟 & 네온) */
-        .machine-header { background: #000; border-radius: 20px; border: 4px solid var(--gold); padding: 20px; box-shadow: inset 0 0 20px var(--neon-pink); }
-        .title { color: #fff; font-size: 40px; margin: 0; text-shadow: 0 0 10px var(--neon-pink), 0 0 20px var(--neon-pink), 0 0 40px var(--neon-pink); animation: neon-pulse 1.5s infinite alternate; }
-        .jackpot-display { color: var(--gold); font-size: 36px; margin-top: 10px; text-shadow: 0 0 15px var(--gold); letter-spacing: 2px; }
+        /* 헤더 (잭팟, 레벨, 콤보) */
+        .machine-header { background: #000; border-radius: 20px; border: 4px solid var(--gold); padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; box-shadow: inset 0 0 20px rgba(255,207,64,0.3); }
+        .header-left { text-align: left; }
+        .header-right { text-align: right; }
+        .title { color: #fff; font-size: 32px; margin: 0; text-shadow: 0 0 10px var(--neon-pink), 0 0 20px var(--neon-pink); animation: neon-pulse 1.5s infinite alternate; }
+        .jackpot-display { color: var(--gold); font-size: 28px; margin-top: 5px; text-shadow: 0 0 15px var(--gold); }
+        .combo-display { color: var(--neon-blue); font-size: 24px; font-weight: bold; text-shadow: 0 0 10px var(--neon-blue); margin-top: 5px; opacity: 0.3; transition: 0.3s; }
+        .combo-display.active { opacity: 1; transform: scale(1.1); animation: shake 0.5s infinite; color: #ff3333; text-shadow: 0 0 15px #ff0000; }
 
-        @keyframes neon-pulse { from { text-shadow: 0 0 10px var(--neon-pink), 0 0 20px var(--neon-pink); } to { text-shadow: 0 0 15px var(--neon-pink), 0 0 30px var(--neon-pink), 0 0 50px #fff; } }
+        /* 레벨 바 */
+        .level-bar-container { width: 300px; height: 15px; background: #333; border-radius: 10px; overflow: hidden; border: 2px solid #555; position: relative; margin-top: 10px; }
+        #exp-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--neon-blue), var(--neon-green)); transition: width 0.3s; }
+        .level-text { font-size: 13px; position: absolute; width: 100%; top: -1px; color: #fff; text-shadow: 1px 1px 2px #000; text-align: center; }
 
-        /* 레벨 시스템 */
-        .level-bar-container { width: 100%; height: 15px; background: #333; border-radius: 10px; overflow: hidden; border: 2px solid #555; position: relative; }
-        #exp-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--neon-blue), #00ff88); transition: width 0.3s; }
-        .level-text { font-size: 14px; position: absolute; width: 100%; top: -2px; color: #fff; text-shadow: 1px 1px 2px #000; }
-
-        /* --- [4] 대형 릴 구역 --- */
+        /* --- [3] 릴 & 디스플레이 --- */
         .slot-container { display: flex; justify-content: center; background: #ddd; padding: 20px; border-radius: 20px; box-shadow: inset 0 0 40px rgba(0,0,0,0.8); gap: 15px; }
-        .reel-window { width: 160px; height: 160px; border: 6px solid #444; border-radius: 15px; overflow: hidden; position: relative; background: #fff; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .reel-window { width: 170px; height: 170px; border: 6px solid #444; border-radius: 15px; overflow: hidden; position: relative; background: #fff; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
         .reel-list { list-style: none; margin: 0; padding: 0; position: absolute; width: 100%; top: 0; }
-        .symbol { height: 160px; line-height: 160px; font-size: 100px; color: black; text-align: center; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        .symbol { height: 170px; line-height: 170px; font-size: 110px; color: black; text-align: center; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
 
-        /* --- [5] 전광판 및 컨트롤 패널 --- */
-        .control-panel { background: rgba(0,0,0,0.5); padding: 20px; border-radius: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        /* --- [4] 컨트롤 패널 & 베팅 --- */
+        .control-panel { background: rgba(0,0,0,0.6); padding: 20px; border-radius: 20px; display: grid; grid-template-columns: 1fr 1fr 1.5fr; gap: 15px; align-items: stretch; }
         
-        .digital-screen { background: var(--screen-bg); border: 3px solid #555; border-radius: 10px; padding: 15px; box-shadow: inset 0 0 15px rgba(0,0,0,0.8); }
-        .screen-label { color: #888; font-size: 14px; margin-bottom: 5px; text-transform: uppercase; }
-        .screen-value { color: var(--text-green); font-family: 'Courier New', monospace; font-size: 32px; text-shadow: 0 0 10px var(--text-green); }
+        .digital-screen { background: var(--screen-bg); border: 2px solid #555; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; justify-content: center; box-shadow: inset 0 0 15px rgba(0,0,0,0.8); }
+        .screen-label { color: #888; font-size: 13px; margin-bottom: 5px; }
+        .screen-value { color: var(--neon-green); font-family: 'Courier New', monospace; font-size: 28px; text-shadow: 0 0 10px var(--neon-green); }
         #bet-input { background: transparent; border: none; color: inherit; font: inherit; width: 100%; text-align: center; text-shadow: inherit; outline: none; }
 
-        .bet-buttons { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center; }
-        .btn-small { background: #444; color: white; border: none; padding: 10px 15px; border-radius: 8px; font-size: 16px; cursor: pointer; transition: 0.1s; font-weight: bold; flex: 1; }
-        .btn-small:hover { background: #666; transform: scale(1.05); }
+        .bet-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+        .btn-small { background: #444; color: white; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; font-weight: bold; transition: 0.1s; padding: 8px 0; }
+        .btn-small:hover { filter: brightness(1.2); transform: scale(1.05); }
         .btn-small:active { transform: scale(0.95); }
-        .btn-red { background: #800; } .btn-green { background: #060; } .btn-gold { background: var(--gold-dark); }
+        .btn-red { background: #800; } .btn-green { background: #060; } .btn-gold { background: var(--gold-dark); grid-column: span 3; padding: 10px 0; font-size: 16px; }
 
-        /* 대형 실행 버튼 구역 */
+        /* --- [5] 액션 & 시스템 버튼 --- */
+        .system-area { display: flex; gap: 10px; margin-top: 5px; }
+        .sys-btn { flex: 1; background: #222; border: 2px solid #555; color: #ccc; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; padding: 10px; transition: 0.2s; }
+        .sys-btn:hover { background: #444; color: #fff; border-color: var(--neon-blue); }
+        .sys-btn.danger:hover { border-color: #ff3333; color: #ff3333; }
+
         .action-area { display: flex; gap: 15px; margin-top: 10px; }
-        .spin-btn { flex: 3; background: linear-gradient(to bottom, #ffeb3b, #ff9800); border: none; border-radius: 20px; font-size: 40px; font-weight: bold; color: #333; cursor: pointer; box-shadow: 0 10px 0 #b8860b, 0 15px 20px rgba(0,0,0,0.5); transition: 0.1s; text-transform: uppercase; }
+        .spin-btn { flex: 3; background: linear-gradient(to bottom, #ffeb3b, #ff9800); border: none; border-radius: 20px; font-size: 45px; font-weight: bold; color: #333; cursor: pointer; box-shadow: 0 10px 0 #b8860b, 0 15px 20px rgba(0,0,0,0.5); transition: 0.1s; }
         .spin-btn:active { transform: translateY(10px); box-shadow: 0 0 0 #b8860b, 0 5px 10px rgba(0,0,0,0.5); }
         .spin-btn:disabled { filter: grayscale(100%); cursor: not-allowed; transform: translateY(10px); box-shadow: none; }
-        
-        .auto-btn { flex: 1; background: #333; border: 4px solid var(--neon-blue); color: var(--neon-blue); border-radius: 20px; font-size: 20px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 0 10px rgba(0,243,255,0.3); }
-        .auto-btn.active { background: var(--neon-blue); color: #000; box-shadow: 0 0 20px var(--neon-blue); animation: pulse 1s infinite; }
+        .auto-btn { flex: 1; background: #333; border: 4px solid var(--neon-blue); color: var(--neon-blue); border-radius: 20px; font-size: 22px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .auto-btn.active { background: var(--neon-blue); color: #000; box-shadow: 0 0 20px var(--neon-blue); }
 
-        #message-board { background: #000; padding: 15px; border-radius: 10px; font-size: 26px; border: 2px dashed #555; height: 35px; color: #fff; }
+        #message-board { background: #000; padding: 12px; border-radius: 10px; font-size: 24px; border: 2px dashed #666; color: #fff; height: 30px; }
 
-        /* --- [6] 3D 레버 (더욱 거대하게) --- */
+        /* --- [6] 모달 (도움말/설명창) --- */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: #1e1e24; border: 4px solid var(--gold); border-radius: 20px; padding: 30px; width: 600px; max-width: 90%; color: white; text-align: left; box-shadow: 0 0 50px rgba(0,0,0,0.9); font-family: 'Malgun Gothic', sans-serif; line-height: 1.6; position: relative; }
+        .modal-content h2 { color: var(--gold); margin-top: 0; text-align: center; border-bottom: 2px solid #444; padding-bottom: 10px; }
+        .modal-content ul { padding-left: 20px; }
+        .modal-content li { margin-bottom: 10px; }
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 30px; cursor: pointer; color: #aaa; background: none; border: none; font-weight: bold; }
+        .close-btn:hover { color: #fff; }
+
+        /* 레버 & 파티클 (이전 유지) */
         .handle-container { width: 80px; height: 300px; position: relative; margin-left: 30px; z-index: 1; }
         .handle-base { width: 50px; height: 120px; background: linear-gradient(to right, #222, #444); position: absolute; left: 0; top: 150px; border-radius: 0 20px 20px 0; box-shadow: 5px 10px 20px rgba(0,0,0,0.8); border: 2px solid #555; border-left: none; }
         .handle-stick { width: 24px; height: 220px; background: linear-gradient(to right, #666, #fff, #666); position: absolute; left: 13px; bottom: 120px; border-radius: 12px; transform-origin: bottom center; transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 5px 5px 15px rgba(0,0,0,0.5); }
-        .handle-knob { width: 80px; height: 80px; background: radial-gradient(circle at 30% 30%, #ff5555, #aa0000, #440000); border-radius: 50%; position: absolute; top: -60px; left: -28px; box-shadow: 0 10px 20px rgba(0,0,0,0.8), inset -5px -5px 10px rgba(0,0,0,0.5); }
+        .handle-knob { width: 80px; height: 80px; background: radial-gradient(circle at 30% 30%, #ff5555, #aa0000); border-radius: 50%; position: absolute; top: -60px; left: -28px; box-shadow: 0 10px 20px rgba(0,0,0,0.8); }
         .pulling .handle-stick { animation: mega-pull 0.5s ease-in-out; }
-        @keyframes mega-pull { 0% { transform: rotateX(0deg); } 40% { transform: rotateX(85deg) scaleY(0.7); } 100% { transform: rotateX(0deg); } }
-
-        /* --- [7] 폭죽 파티클 (JS로 동적 생성) --- */
+        
         .particle { position: absolute; width: 15px; height: 15px; pointer-events: none; z-index: 999; animation: fall 2s linear forwards; }
         @keyframes fall { 0% { transform: translateY(0) rotate(0deg); opacity: 1; } 100% { transform: translateY(800px) rotate(720deg); opacity: 0; } }
-        
-        /* 유틸리티 */
-        .sound-toggle { position: absolute; top: 20px; right: 20px; font-size: 30px; cursor: pointer; z-index: 100; opacity: 0.7; }
-        .sound-toggle:hover { opacity: 1; }
+        @keyframes neon-pulse { from { text-shadow: 0 0 10px var(--neon-pink); } to { text-shadow: 0 0 20px var(--neon-pink), 0 0 30px #fff; } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
     </style>
 </head>
 <body>
 
-    <div id="sound-btn" class="sound-toggle">🔊</div>
-
     <div id="entry-screen">
-        <h2 style="font-size: 40px; color: var(--gold); margin-top:0;">🎰 MEGA CASINO</h2>
-        <p style="font-size: 20px; color: #ccc;">당신의 운을 시험할 준비가 되셨습니까?</p>
-        <input type="number" id="start-balance" value="100000" style="padding:15px; font-size:30px; width:250px; text-align:center; background:#111; color:var(--text-green); border:4px solid #555; border-radius:15px; margin: 20px 0; font-family: monospace;">
-        <br>
-        <button id="start-btn" class="spin-btn" style="font-size: 30px; padding: 15px 50px;">입장하기</button>
+        <h2 style="font-size: 45px; color: var(--gold); margin-top:0;">🎰 APEX CASINO</h2>
+        <input type="number" id="start-balance" value="100000" style="padding:15px; font-size:30px; width:250px; text-align:center; background:#111; color:var(--neon-green); border:4px solid #555; border-radius:15px; margin: 20px 0; font-family: monospace;">
+        <br><button id="start-btn" class="spin-btn" style="font-size: 30px; padding: 15px 50px;">ENTER GAME</button>
     </div>
 
     <div id="game-screen">
@@ -110,11 +118,16 @@
             <div class="slot-machine">
                 
                 <div class="machine-header">
-                    <h1 class="title">NEON MEGA SLOT</h1>
-                    <div class="jackpot-display">JACKPOT: ₩<span id="jackpot-amount">10,000</span></div>
-                    <div class="level-bar-container" style="margin-top: 15px;">
-                        <div id="exp-bar"></div>
-                        <div class="level-text">Lv.<span id="level-display">1</span> (EXP: <span id="exp-display">0</span>/100)</div>
+                    <div class="header-left">
+                        <h1 class="title">APEX MEGA SLOT</h1>
+                        <div class="level-bar-container">
+                            <div id="exp-bar"></div>
+                            <div class="level-text">Lv.<span id="level-display">1</span> (EXP: <span id="exp-display">0</span>/100)</div>
+                        </div>
+                    </div>
+                    <div class="header-right">
+                        <div class="jackpot-display">JACKPOT: ₩<span id="jackpot-amount">10,000</span></div>
+                        <div id="combo-display" class="combo-display">🔥 COMBO: 0x</div>
                     </div>
                 </div>
 
@@ -124,30 +137,42 @@
                     <div class="reel-window"><ul id="reel3" class="reel-list"></ul></div>
                 </div>
 
+                <div class="system-area">
+                    <button class="sys-btn" onclick="game.showInfo()">📖 HELP / INFO (설명)</button>
+                    <button class="sys-btn" onclick="game.audio.toggleBtn(this)">🔊 SOUND: ON</button>
+                    <button class="sys-btn danger" onclick="game.resetGame()">🔄 GAME RESET (초기화)</button>
+                </div>
+
                 <div class="control-panel">
                     <div class="digital-screen">
                         <div class="screen-label">BALANCE (KRW)</div>
                         <div class="screen-value" id="balance-display">0</div>
                     </div>
-                    
-                    <div class="digital-screen" style="display:flex; flex-direction:column; justify-content:space-between;">
-                        <div class="screen-label">CURRENT BET</div>
-                        <input type="number" id="bet-input" class="screen-value" value="1000">
+                    <div class="digital-screen">
+                        <div class="screen-label">STATISTICS</div>
+                        <div style="font-size:14px; color:#aaa; font-family:monospace; margin-top:5px;">
+                            SPINS: <span id="stat-spins" style="color:#fff;">0</span><br>
+                            MAX WIN: <span id="stat-maxwin" style="color:var(--gold);">0</span>
+                        </div>
                     </div>
-
-                    <div class="bet-buttons" style="grid-column: span 2;">
-                        <button class="btn-small btn-red" onclick="game.changeBet(-5000)">-5K</button>
-                        <button class="btn-small btn-red" onclick="game.changeBet(-1000)">-1K</button>
-                        <button class="btn-small btn-red" onclick="game.changeBet(-500)">-500</button>
-                        <button class="btn-small btn-green" onclick="game.changeBet(500)">+500</button>
-                        <button class="btn-small btn-green" onclick="game.changeBet(1000)">+1K</button>
-                        <button class="btn-small btn-green" onclick="game.changeBet(5000)">+5K</button>
-                        <button class="btn-small btn-gold" onclick="game.maxBet()">MAX BET</button>
+                    <div>
+                        <div class="digital-screen" style="margin-bottom: 8px; padding: 5px;">
+                            <div class="screen-label" style="text-align:center;">BET AMOUNT</div>
+                            <input type="number" id="bet-input" class="screen-value" value="1000" style="font-size:24px;">
+                        </div>
+                        <div class="bet-buttons">
+                            <button class="btn-small btn-red" onclick="game.changeBet(-5000)">-5K</button>
+                            <button class="btn-small btn-red" onclick="game.changeBet(-1000)">-1K</button>
+                            <button class="btn-small btn-red" onclick="game.changeBet(-500)">-500</button>
+                            <button class="btn-small btn-green" onclick="game.changeBet(500)">+500</button>
+                            <button class="btn-small btn-green" onclick="game.changeBet(1000)">+1K</button>
+                            <button class="btn-small btn-green" onclick="game.changeBet(5000)">+5K</button>
+                            <button class="btn-small btn-gold" onclick="game.maxBet()">MAX BET</button>
+                        </div>
                     </div>
                 </div>
 
-                <div id="message-board">SYSTEM READY. PULL LEVER TO START.</div>
-
+                <div id="message-board">SYSTEM READY. Press SPACE or SPIN!</div>
                 <div class="action-area">
                     <button id="auto-btn" class="auto-btn">AUTO<br>SPIN</button>
                     <button id="spin-btn" class="spin-btn">S P I N !</button>
@@ -161,147 +186,129 @@
         </div>
     </div>
 
+    <div id="info-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-btn" onclick="game.hideInfo()">×</button>
+            <h2>📖 슬롯 머신 기능 및 규칙 안내</h2>
+            <ul>
+                <li><strong>💰 배당률 (Payouts):</strong><br> 🍒 1배 | 🍋 1.5배 | 🍇 2배 | 💎 3배 | 7️⃣ 5배</li>
+                <li><strong>🔥 콤보 시스템 (Combo):</strong><br> 연속으로 당첨될 때마다 콤보 수치가 오르며, 당첨금에 <strong>[콤보수 × 0.5배]</strong>의 추가 배율이 곱해집니다. (예: 2콤보 시 당첨금 x1.5)</li>
+                <li><strong>👑 프로그레시브 잭팟 (Jackpot):</strong><br> 스핀을 돌릴 때마다 베팅액의 10%가 잭팟에 누적됩니다. <strong>7️⃣7️⃣7️⃣</strong>에 당첨되면 기본 배당(5배)과 함께 누적된 잭팟 금액을 모두 획득합니다!</li>
+                <li><strong>⭐ RPG 레벨링 (EXP):</strong><br> 스핀을 돌릴 때마다 경험치(EXP)를 획득하며 레벨업을 할 수 있습니다.</li>
+                <li><strong>🔄 기능 설명:</strong><br>
+                    - <code>AUTO SPIN</code>: 수동으로 끌 때까지 혹은 돈이 다 떨어질 때까지 자동으로 회전합니다.<br>
+                    - <code>GAME RESET</code>: 파산했거나 처음부터 다시 하고 싶을 때 모든 자산과 레벨을 초기화합니다.
+                </li>
+                <li><strong>🤫 비밀 관리자 모드 (Cheat):</strong><br> 스핀 전 키보드 <code>1~5</code>를 누르면 해당 기호로 당첨 조작, <code>9</code>를 누르면 무조건 꽝입니다. <code>0</code>으로 해제합니다.</li>
+            </ul>
+        </div>
+    </div>
+
     <script>
-        // ==========================================
-        // 1. Audio Engine (Web Audio API 활용 자체 사운드)
-        // ==========================================
+        // --- 1. Audio & Particles (이전과 동일하게 유지) ---
         class AudioEngine {
-            constructor() {
-                this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-                this.enabled = true;
-            }
-            toggle() { this.enabled = !this.enabled; return this.enabled; }
+            constructor() { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); this.enabled = true; }
+            toggleBtn(btn) { this.enabled = !this.enabled; btn.textContent = this.enabled ? '🔊 SOUND: ON' : '🔇 SOUND: OFF'; }
             playTone(freq, type, duration, vol=0.1) {
                 if (!this.enabled || this.ctx.state === 'suspended') return;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = type; osc.frequency.value = freq;
-                osc.connect(gain); gain.connect(this.ctx.destination);
-                osc.start();
-                gain.gain.setValueAtTime(vol, this.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
-                osc.stop(this.ctx.currentTime + duration);
+                const osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
+                osc.type = type; osc.frequency.value = freq; osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(); gain.gain.setValueAtTime(vol, this.ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration); osc.stop(this.ctx.currentTime + duration);
             }
-            playSpin() { this.playTone(150, 'triangle', 0.5, 0.05); } // 릴 돌아가는 소리
-            playStop() { this.playTone(400, 'square', 0.1, 0.1); } // 릴 멈추는 소리
-            playWin() {
-                if(!this.enabled) return;
-                // 승리 팡파레
-                [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
-                    setTimeout(() => this.playTone(freq, 'sine', 0.3, 0.2), i * 150);
-                });
-            }
-            playJackpot() {
-                if(!this.enabled) return;
-                for(let i=0; i<20; i++) {
-                    setTimeout(() => this.playTone(800 + Math.random()*400, 'square', 0.1, 0.2), i*100);
-                }
-            }
+            playSpin() { this.playTone(150, 'triangle', 0.5, 0.05); } 
+            playStop() { this.playTone(400, 'square', 0.1, 0.1); } 
+            playWin() { if(!this.enabled) return; [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => setTimeout(() => this.playTone(freq, 'sine', 0.3, 0.2), i * 150)); }
+            playJackpot() { if(!this.enabled) return; for(let i=0; i<20; i++) setTimeout(() => this.playTone(800 + Math.random()*400, 'square', 0.1, 0.2), i*100); }
             playLever() { this.playTone(200, 'sawtooth', 0.2, 0.1); }
         }
 
-        // ==========================================
-        // 2. Particle System (화려한 폭죽 효과)
-        // ==========================================
         class ParticleSystem {
             static fire() {
                 const colors = ['#ffcf40', '#ff007f', '#00f3ff', '#00ff41', '#ffffff'];
                 for(let i=0; i<100; i++) {
-                    const p = document.createElement('div');
-                    p.className = 'particle';
-                    p.style.left = Math.random() * window.innerWidth + 'px';
-                    p.style.top = (Math.random() * 50 - 50) + 'px'; // 화면 위에서 시작
+                    const p = document.createElement('div'); p.className = 'particle';
+                    p.style.left = Math.random() * window.innerWidth + 'px'; p.style.top = (Math.random() * 50 - 50) + 'px';
                     p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                    p.style.animationDuration = (Math.random() * 2 + 1) + 's';
-                    document.body.appendChild(p);
-                    setTimeout(() => p.remove(), 3000); // 3초 후 메모리 정리
+                    p.style.animationDuration = (Math.random() * 2 + 1) + 's'; document.body.appendChild(p);
+                    setTimeout(() => p.remove(), 3000);
                 }
             }
         }
 
-        // ==========================================
-        // 3. Main Game Logic (클래스로 완벽 분리)
-        // ==========================================
+        // --- 2. Main Game Logic ---
         class SlotGame {
             constructor() {
-                // 게임 설정
                 this.config = { '🍒': 1.0, '🍋': 1.5, '🍇': 2.0, '💎': 3.0, '7️⃣': 5.0 };
                 this.symbols = Object.keys(this.config);
-                this.symbolHeight = 160;
+                this.symbolHeight = 170;
                 
-                // 게임 상태
-                this.balance = 0;
-                this.bet = 1000;
-                this.jackpot = 10000;
-                this.level = 1;
-                this.exp = 0;
-                this.isSpinning = false;
-                this.isAuto = false;
-                this.adminMode = null; // 은밀한 치트 모드
-
-                // DOM 요소 매핑
-                this.els = {
-                    balance: document.getElementById('balance-display'),
-                    bet: document.getElementById('bet-input'),
-                    jackpot: document.getElementById('jackpot-amount'),
-                    msg: document.getElementById('message-board'),
-                    level: document.getElementById('level-display'),
-                    expText: document.getElementById('exp-display'),
-                    expBar: document.getElementById('exp-bar'),
-                    spinBtn: document.getElementById('spin-btn'),
-                    autoBtn: document.getElementById('auto-btn'),
-                    handle: document.getElementById('handle-container'),
-                    reels: [document.getElementById('reel1'), document.getElementById('reel2'), document.getElementById('reel3')]
-                };
-
+                // 상태 변수 (Stats 포함)
+                this.startMoney = 100000;
+                this.balance = 0; this.bet = 1000; this.jackpot = 10000;
+                this.level = 1; this.exp = 0;
+                this.combo = 0; // 연속 당첨 횟수
+                this.stats = { spins: 0, maxWin: 0 }; // 통계 기능 추가
+                
+                this.isSpinning = false; this.isAuto = false; this.adminMode = null;
                 this.audio = new AudioEngine();
-                this.initEvents();
+                
+                this.initDOM(); this.initEvents();
             }
 
-            // 초기화 및 릴 생성
+            initDOM() {
+                this.els = {
+                    balance: document.getElementById('balance-display'), bet: document.getElementById('bet-input'),
+                    jackpot: document.getElementById('jackpot-amount'), msg: document.getElementById('message-board'),
+                    level: document.getElementById('level-display'), expText: document.getElementById('exp-display'), expBar: document.getElementById('exp-bar'),
+                    combo: document.getElementById('combo-display'), statSpins: document.getElementById('stat-spins'), statMaxWin: document.getElementById('stat-maxwin'),
+                    spinBtn: document.getElementById('spin-btn'), autoBtn: document.getElementById('auto-btn'), handle: document.getElementById('handle-container'),
+                    modal: document.getElementById('info-modal'), reels: [document.getElementById('reel1'), document.getElementById('reel2'), document.getElementById('reel3')]
+                };
+            }
+
+            // 시작 & 초기화 함수
             init(startMoney) {
-                this.balance = startMoney;
+                this.startMoney = startMoney;
+                this.resetGameData();
                 this.els.reels.forEach(reel => {
-                    let html = "";
-                    for(let i=0; i<15; i++) html += this.symbols.map(s => `<li class="symbol">${s}</li>`).join('');
+                    let html = ""; for(let i=0; i<15; i++) html += this.symbols.map(s => `<li class="symbol">${s}</li>`).join('');
                     reel.innerHTML = html;
                 });
-                this.updateUI();
                 document.getElementById('entry-screen').style.display = 'none';
                 document.getElementById('game-screen').style.display = 'flex';
-                // 오디오 컨텍스트 활성화 (사용자 제스처 후)
                 this.audio.ctx.resume();
             }
 
-            // 이벤트 바인딩
+            // 완전 초기화 (GAME RESET)
+            resetGame() {
+                if(this.isSpinning) return;
+                if(confirm("정말 게임을 초기 상태로 리셋하시겠습니까? (자산, 레벨, 통계가 모두 초기화됩니다.)")) {
+                    this.resetGameData();
+                    this.showMessage("게임이 초기화되었습니다.", "var(--neon-green)");
+                }
+            }
+
+            resetGameData() {
+                this.balance = this.startMoney;
+                this.bet = 1000; this.jackpot = 10000;
+                this.level = 1; this.exp = 0; this.combo = 0;
+                this.stats = { spins: 0, maxWin: 0 };
+                this.isAuto = false; this.els.autoBtn.classList.remove('active');
+                document.body.classList.remove('fever');
+                this.updateUI();
+            }
+
             initEvents() {
                 document.getElementById('start-btn').addEventListener('click', () => {
-                    const m = parseInt(document.getElementById('start-balance').value) || 10000;
-                    this.init(m);
+                    const m = parseInt(document.getElementById('start-balance').value) || 100000; this.init(m);
                 });
-
                 this.els.spinBtn.addEventListener('click', () => this.spin());
                 this.els.autoBtn.addEventListener('click', () => this.toggleAuto());
-                
-                // 직접 입력
-                this.els.bet.addEventListener('change', (e) => {
-                    let v = parseInt(e.target.value) || 100;
-                    this.setBet(v);
-                });
+                this.els.bet.addEventListener('change', (e) => this.setBet(parseInt(e.target.value) || 100));
 
-                // 사운드 토글
-                document.getElementById('sound-btn').addEventListener('click', (e) => {
-                    const isOn = this.audio.toggle();
-                    e.target.textContent = isOn ? '🔊' : '🔇';
-                });
-
-                // 키보드 조작 (스페이스바 + 치트코드)
                 window.addEventListener('keydown', (e) => {
                     if (document.getElementById('game-screen').style.display !== 'none') {
-                        if (e.code === "Space" && document.activeElement !== this.els.bet && !this.isSpinning) {
-                            e.preventDefault(); this.spin();
-                        }
-                        // 치트 모드: 1~5(당첨), 9(꽝), 0(해제)
+                        if (e.code === "Space" && document.activeElement !== this.els.bet && !this.isSpinning) { e.preventDefault(); this.spin(); }
                         if (e.key >= '1' && e.key <= '5') this.adminMode = parseInt(e.key) - 1;
                         if (e.key === '9') this.adminMode = 'lose';
                         if (e.key === '0') this.adminMode = null;
@@ -309,34 +316,18 @@
                 });
             }
 
-            // 베팅 관리
-            setBet(amount) {
-                if(this.isSpinning) return;
-                this.bet = Math.max(100, Math.min(this.balance, amount));
-                this.updateUI();
-            }
+            showInfo() { this.els.modal.style.display = 'flex'; }
+            hideInfo() { this.els.modal.style.display = 'none'; }
+
+            setBet(amount) { if(!this.isSpinning) { this.bet = Math.max(100, Math.min(this.balance, amount)); this.updateUI(); } }
             changeBet(amount) { this.setBet(this.bet + amount); }
             maxBet() { this.setBet(this.balance); }
 
-            // 오토 스핀
             toggleAuto() {
-                this.isAuto = !this.isAuto;
-                this.els.autoBtn.classList.toggle('active', this.isAuto);
+                this.isAuto = !this.isAuto; this.els.autoBtn.classList.toggle('active', this.isAuto);
                 if(this.isAuto && !this.isSpinning) this.spin();
             }
 
-            // 레벨 및 경험치 시스템
-            gainExp() {
-                this.exp += 10;
-                if(this.exp >= 100) {
-                    this.level++;
-                    this.exp = 0;
-                    this.showMessage(`LEVEL UP! LV.${this.level}`, 'var(--neon-blue)');
-                    this.audio.playWin(); // 레벨업 소리
-                }
-            }
-
-            // UI 업데이트
             updateUI() {
                 this.els.balance.textContent = this.balance.toLocaleString();
                 this.els.bet.value = this.bet;
@@ -344,110 +335,97 @@
                 this.els.level.textContent = this.level;
                 this.els.expText.textContent = this.exp;
                 this.els.expBar.style.width = `${this.exp}%`;
+                this.els.statSpins.textContent = this.stats.spins.toLocaleString();
+                this.els.statMaxWin.textContent = this.stats.maxWin.toLocaleString();
+                
+                // 콤보 UI 처리
+                this.els.combo.textContent = `🔥 COMBO: ${this.combo}x`;
+                if(this.combo >= 2) {
+                    this.els.combo.classList.add('active');
+                    document.body.classList.add('fever'); // 피버 배경 활성화
+                } else {
+                    this.els.combo.classList.remove('active');
+                    document.body.classList.remove('fever');
+                }
             }
-            showMessage(text, color = 'white') {
-                this.els.msg.innerHTML = `<span style="color:${color}; text-shadow:0 0 10px ${color}">${text}</span>`;
-            }
+            showMessage(text, color = 'white') { this.els.msg.innerHTML = `<span style="color:${color}; text-shadow:0 0 10px ${color}">${text}</span>`; }
 
-            // 메인 스핀 로직
             async spin() {
                 if (this.balance < this.bet || this.bet <= 0) {
-                    this.showMessage('잔액이 부족합니다!', 'red');
-                    this.isAuto = false;
-                    this.els.autoBtn.classList.remove('active');
-                    return;
+                    this.showMessage('잔액이 부족합니다! 금액을 조정하거나 리셋하세요.', '#ff3333');
+                    this.isAuto = false; this.els.autoBtn.classList.remove('active'); return;
                 }
 
-                this.isSpinning = true;
-                this.balance -= this.bet;
-                this.jackpot += this.bet * 0.1; // 잭팟 누적 (베팅액의 10%)
-                this.gainExp();
+                this.isSpinning = true; this.balance -= this.bet; this.jackpot += this.bet * 0.1;
+                this.stats.spins++; // 스핀 횟수 증가
+                
+                // 경험치
+                this.exp += 10; if(this.exp >= 100) { this.level++; this.exp = 0; this.audio.playWin(); }
                 this.updateUI();
                 
-                this.els.spinBtn.disabled = true;
-                this.showMessage('돌아가는 중... 행운을 빕니다!');
-                
-                // 레버 당기기 & 사운드
-                this.els.handle.classList.add('pulling');
-                this.audio.playLever();
+                this.els.spinBtn.disabled = true; this.showMessage('돌아가는 중...');
+                this.els.handle.classList.add('pulling'); this.audio.playLever();
                 setTimeout(() => this.els.handle.classList.remove('pulling'), 500);
 
-                // 결과 조작 및 랜덤 결정
                 let results = [];
                 if (this.adminMode === 'lose') {
-                    let f = Math.floor(Math.random() * this.symbols.length);
-                    results = [f, (f + 1) % this.symbols.length, Math.floor(Math.random() * this.symbols.length)];
+                    let f = Math.floor(Math.random() * this.symbols.length); results = [f, (f + 1) % this.symbols.length, Math.floor(Math.random() * this.symbols.length)];
                 } else if (this.adminMode !== null) {
                     results = [this.adminMode, this.adminMode, this.adminMode];
                 } else {
                     results = [0,0,0].map(() => Math.floor(Math.random() * this.symbols.length));
                 }
 
-                // 릴 회전 애니메이션
                 const promises = this.els.reels.map((reel, i) => {
                     return new Promise(resolve => {
-                        reel.style.transition = 'none'; 
-                        reel.style.transform = `translateY(0)`; 
-                        reel.offsetHeight; // 리플로우 강제
-                        
+                        reel.style.transition = 'none'; reel.style.transform = `translateY(0)`; reel.offsetHeight; 
                         const move = (this.symbolHeight * this.symbols.length * (8 + i)) + (results[i] * this.symbolHeight);
                         reel.style.transition = `transform ${3 + i * 0.5}s cubic-bezier(0.15, 0, 0.15, 1)`;
                         reel.style.transform = `translateY(-${move}px)`;
                         
-                        // 도는 동안 소리
                         let tick = setInterval(()=> this.audio.playSpin(), 150);
-                        
-                        setTimeout(() => {
-                            clearInterval(tick);
-                            this.audio.playStop();
-                            resolve();
-                        }, 3000 + i * 500);
+                        setTimeout(() => { clearInterval(tick); this.audio.playStop(); resolve(); }, 3000 + i * 500);
                     });
                 });
 
                 await Promise.all(promises);
                 this.processResult(results);
                 
-                // 후속 처리
-                this.adminMode = null; 
-                this.isSpinning = false; 
-                this.els.spinBtn.disabled = false;
+                this.adminMode = null; this.isSpinning = false; this.els.spinBtn.disabled = false;
                 if (this.bet > this.balance) this.setBet(this.balance);
-                
-                // 오토 스핀 체크
                 if(this.isAuto) setTimeout(() => this.spin(), 1000);
             }
 
-            // 결과 처리
             processResult(indices) {
                 if (indices[0] === indices[1] && indices[1] === indices[2]) {
+                    this.combo++; // 당첨 시 콤보 증가
                     const symbol = this.symbols[indices[0]];
-                    let win = Math.floor(this.bet * this.config[symbol]);
                     
-                    // 777 잭팟 로직!
+                    // 콤보 배율 계산 (기본 1배 + 콤보당 0.5배 보너스)
+                    let comboMultiplier = 1 + ((this.combo - 1) * 0.5); 
+                    let win = Math.floor(this.bet * this.config[symbol] * comboMultiplier);
+                    
                     if (symbol === '7️⃣') {
-                        win += Math.floor(this.jackpot);
-                        this.jackpot = 10000; // 잭팟 초기화
-                        this.showMessage(`🔥 MEGA JACKPOT! +${win.toLocaleString()} 🔥`, 'var(--gold)');
-                        this.audio.playJackpot();
-                        ParticleSystem.fire();
-                        ParticleSystem.fire(); // 폭죽 두 배!
+                        win += Math.floor(this.jackpot); this.jackpot = 10000;
+                        this.showMessage(`🔥 MEGA JACKPOT! +${win.toLocaleString()} (Combo x${comboMultiplier}) 🔥`, 'var(--gold)');
+                        this.audio.playJackpot(); ParticleSystem.fire(); ParticleSystem.fire();
                     } else {
-                        this.showMessage(`🎉 WIN! +${win.toLocaleString()} (${symbol} x${this.config[symbol]}) 🎉`, 'var(--neon-pink)');
-                        this.audio.playWin();
-                        ParticleSystem.fire();
+                        this.showMessage(`🎉 WIN! +${win.toLocaleString()} (${symbol} x${this.config[symbol]} * Combo x${comboMultiplier}) 🎉`, 'var(--neon-pink)');
+                        this.audio.playWin(); ParticleSystem.fire();
                     }
+                    
                     this.balance += win;
+                    if(win > this.stats.maxWin) this.stats.maxWin = win; // 최고 기록 갱신
+
                 } else {
-                    this.showMessage('아쉽습니다. 다시 도전하세요!', '#ccc');
+                    this.combo = 0; // 실패 시 콤보 초기화
+                    this.showMessage('아쉽습니다. 다음 기회에!', '#ccc');
                 }
                 this.updateUI();
             }
         }
 
-        // 게임 인스턴스 생성
         const game = new SlotGame();
-
     </script>
 </body>
 </html>
